@@ -1,1 +1,8 @@
-I took about 2 minutes to make this because it takes forever to connect to networks that check for an ident if there is no immediate response, and I'm impatient. This is obviously not an actual identd, as it responds the same no matter what the socket reads. It obviously requires privileges to run on port 113. start with ./identd <ident>
+Fake identd daemon
+Responds to identd requests with arbitrary response.
+
+Usage: ./identd [-rd] [-i x] [-p x]
+ -r    Random identd response string
+ -i x  Static identd response string
+ -d    Run as daemon
+ -p x  PID file to populate when running as daemon

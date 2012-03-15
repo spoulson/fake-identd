@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+# Fake identd daemon - Responds to identd requests with arbitrary response.
+# Github repo: https://github.com/spoulson/fake-identd
+# Shawn Poulson <spoulson@explodingcoder.com>
+#
+# Forked fake identd from https://github.com/cooper/fake-identd
+# with improvements:
+# - Static or randomized identd response.
+# - Daemonize process
+
+use strict;
+use warnings;
+use IO::Socket;
+use IO::File;
+use String::Random;
+use Getopt::Std;
+use Proc::Daemon;
+
+my %opts = (
+    i => 'nobody'
+);
+
+# Parse command line parameters:
+# -r    Random identd response string
+# -i x  Static identd response string
+# -d    Run as daemon
+# -p x  PID file to populate when running as daemon
+getopts('rdp:i:', \%opts);
+
+# Handle daemon mode.
+if ($opts{d}) {
+    if ($opts{p} && -e $opts{p}) {
+        die 'A fake-identd process is still running!';
+    }
+    
+    Proc::Daemon::Init;
+    
+    if ($opts{p}) {
+        my $pid_fh = IO::File->new('>' . $opts{p});
+        print $pid_fh $$;
+        $pid_fh->close;
+    }
+}
+
+my $rand = new String::Random;
+my ($client, $socket);
+
+$socket = IO::Socket::INET->new(
+    Proto => 'tcp',
+    LocalPort => 113,
+    Reuse => 1,
+    Listen => 1) or die "Error: $!\n";
+
+while ($client = $socket->accept()) {
+    my $host = $client->peerhost();
+    print "connection: ", $host . "\n";
+
+    my $data = <$client>;
+    if ($data) {
+        print "$host recv: $data\n";
+        $data =~ s/^\s+//;
+        $data =~ s/\s+$//;
+
+        my $ident = $opts{i};
+        if ($opts{r}) {
+            $ident = $rand->randpattern('cccccccc');
+        }
+
+        my $resp = "$data : USERID : UNIX : $ident\n";
+        print "response: $resp";
+        print $client $resp;
+        close $client;
+    }
+}
+
+undef $client if $client;
