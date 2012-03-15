@@ -1,5 +1,6 @@
 Fake identd daemon
 Responds to identd requests with arbitrary response.
+Based on code by Mitchell Cooper (https://github.com/cooper/fake-identd).
 
 Usage: ./identd [-rd] [-i x] [-p x]
  -r    Random identd response string
