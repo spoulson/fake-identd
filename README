@@ -7,3 +7,8 @@ Usage: ./identd [-rd] [-i x] [-p x]
  -i x  Static identd response string
  -d    Run as daemon
  -p x  PID file to populate when running as daemon
+
+Perl module pre-requisites:
+
+* String::Random
+* Proc::Daemon
